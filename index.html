@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HS MEMBER</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: #0B1A3A; color: #FFFFFF; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; min-height: 100vh; }
+.wrap { max-width: 480px; margin: 0 auto; padding: 0 16px 32px; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; gap: 8px; }
+header h1 { font-size: 18px; margin: 0; letter-spacing: .5px; }
+.right { display: flex; align-items: center; gap: 8px; }
+.pill { font-size: 12px; color: #A9B4D0; background: #142B5C; padding: 4px 10px; border-radius: 999px; }
+.poster { background: #7B3FE4; border-radius: 16px; padding: 18px; cursor: pointer; }
+.poster small { color: #EEEDFE; font-size: 12px; }
+.poster h2 { font-size: 22px; margin: 6px 0 4px; line-height: 1.2; }
+.poster p { margin: 0; color: #EEEDFE; font-size: 14px; }
+.poster img { width: 100%; border-radius: 12px; margin-top: 12px; display: none; }
+.btn { display: inline-block; margin-top: 14px; background: #FFFFFF; color: #26215C; font-weight: 600; font-size: 14px; padding: 10px 16px; border-radius: 10px; border: none; cursor: pointer; width: 100%; font-family: inherit; }
+.btn:disabled { background: #B79CFF; cursor: default; }
+.btn.ghost { background: transparent; color: #B79CFF; border: 1px solid #7B3FE4; }
+.btn.small { width: auto; margin-top: 0; padding: 6px 12px; font-size: 13px; }
+section { margin-top: 20px; }
+section h3 { font-size: 14px; color: #A9B4D0; font-weight: 500; margin: 0 0 8px; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tab { background: #142B5C; border: 1px solid #142B5C; border-radius: 14px; padding: 12px; cursor: pointer; color: #FFFFFF; text-align: left; font-family: inherit; }
+.tab.active { border-color: #7B3FE4; }
+.tab strong { display: block; font-size: 15px; font-weight: 500; }
+.tab span { display: block; font-size: 12px; color: #A9B4D0; margin-top: 2px; }
+.card { background: #142B5C; border-radius: 14px; padding: 14px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid #1d3670; font-size: 14px; }
+.row:last-child { border-bottom: none; }
+.row small { color: #A9B4D0; font-size: 12px; display: block; }
+.badge { font-size: 12px; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+.aktif { background: #1F3D2B; color: #9FE8B5; }
+.tidak { background: #2A2F4A; color: #A9B4D0; }
+.gold { color: #D4AF37; font-weight: 600; }
+.note { font-size: 12px; color: #A9B4D0; margin-top: 8px; }
+.welcome { font-size: 15px; margin: 0 0 6px; }
+input { width: 100%; background: #0B1A3A; color: #FFFFFF; border: 1px solid #1d3670; border-radius: 10px; padding: 10px; font-size: 15px; font-family: inherit; letter-spacing: 1px; text-transform: uppercase; }
+input:focus { outline: none; border-color: #7B3FE4; }
+.err { font-size: 13px; color: #FF9B9B; min-height: 18px; margin-top: 8px; }
+.ok { font-size: 13px; color: #9FE8B5; min-height: 18px; margin-top: 8px; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; align-items: center; justify-content: center; padding: 16px; }
+.modal.open { display: flex; }
+.sheet { background: #142B5C; border-radius: 16px; padding: 20px; width: 100%; max-width: 380px; }
+.sheet h4 { margin: 0 0 6px; font-size: 18px; }
+.sheet p { margin: 0 0 14px; color: #A9B4D0; font-size: 14px; }
+.loading { color: #A9B4D0; font-size: 14px; padding: 12px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>HS MEMBER</h1>
+    <div class="right">
+      <span class="pill" id="seasonPill">Season</span>
+      <button class="btn small ghost" id="authBtn">Masuk</button>
+    </div>
+  </header>
+
+  <div class="poster" id="poster" role="button" tabindex="0">
+    <small>Poster turnamen terbaru</small>
+    <h2 id="posterTitle">Memuat...</h2>
+    <p id="posterSub"></p>
+    <img id="posterImg" alt="Poster turnamen">
+    <button class="btn" id="posterBtn">Daftar sekarang</button>
+  </div>
+
+  <section>
+    <h3>Pilih platform</h3>
+    <div class="tabs">
+      <button class="tab active" data-plat="PS3"><strong>GEMBOX LEGACY</strong><span id="ps3prog"></span></button>
+      <button class="tab" data-plat="PS4"><strong>HS GUARDIANS CUP</strong><span id="ps4prog"></span></button>
+    </div>
+  </section>
+
+  <section>
+    <h3>Status keanggotaan</h3>
+    <div class="card" id="statusCard"></div>
+  </section>
+
+  <section>
+    <h3 id="listTitle"></h3>
+    <div class="card" id="tournamentList"><div class="loading">Memuat turnamen...</div></div>
+  </section>
+
+  <section>
+    <h3>Juara terakhir</h3>
+    <div class="card" id="champions"><div class="loading">Memuat juara...</div></div>
+  </section>
+</div>
+
+<div class="modal" id="loginModal" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <h4>Masuk sebagai member</h4>
+    <p>Masukkan kode member yang diberikan admin.</p>
+    <input id="kodeInput" placeholder="Contoh: RZ-001" maxlength="12" autocomplete="off">
+    <button class="btn" id="loginConfirm">Masuk</button>
+    <button class="btn ghost" id="loginCancel" style="margin-top:8px;">Batal</button>
+    <div class="err" id="loginErr"></div>
+  </div>
+</div>
+
+<div class="modal" id="regModal" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <h4 id="regTitle"></h4>
+    <p id="regText"></p>
+    <button class="btn" id="regConfirm">Konfirmasi pendaftaran</button>
+    <button class="btn ghost" id="regCancel" style="margin-top:8px;">Batal</button>
+    <div class="ok" id="regMsg"></div>
+  </div>
+</div>
+
+<script>
+// Kunci anon boleh dipakai di browser. Keamanan dijaga oleh aturan RLS dan fungsi di database.
+const SUPABASE_URL = "https://gsqfpwcvdxsplnbhwbpk.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzcWZwd2N2ZHhzcGxuYmh3YnBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0NzQ0MDIsImV4cCI6MjEwOTA1MDQwMn0.F_naHgJxlM9TReykzwe3hjf7H6HHQZxN9T0R2OncXsI";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+
+let season = null;
+let tournaments = [];   // semua turnamen season aktif
+let champions = [];
+let platform = "PS3";
+let kode = null;        // kode member yang sedang login
+let nama = null;
+let status = [];        // status per platform untuk akun yang login
+let pendingReg = false;
+
+function turnamen(plat) { return tournaments.filter(t => t.platform === plat); }
+function yangDibuka(plat) {
+  return turnamen(plat).find(t => t.status === "berjalan" || t.status === "dibuka") || null;
+}
+
+async function muat() {
+  const s = await sb.from("seasons").select("id,nomor").eq("status", "aktif").maybeSingle();
+  season = s.data;
+  if (!season) { $("posterTitle").textContent = "Belum ada season aktif"; return; }
+  $("seasonPill").textContent = "Season " + season.nomor;
+
+  const ts = await sb.from("tournaments")
+    .select("id,platform,nomor_dalam_season,nama,tanggal,status,poster_url")
+    .eq("season_id", season.id)
+    .order("nomor_dalam_season");
+  tournaments = ts.data || [];
+
+  const ch = await sb.from("champions")
+    .select("peringkat,nama_tampil,tournaments(nama,platform)")
+    .order("peringkat");
+  champions = ch.data || [];
+
+  if (kode) await muatStatus();
+  renderAll();
+}
+
+async function muatStatus() {
+  const { data } = await sb.rpc("status_saya", { kode_input: kode });
+  status = data || [];
+}
+
+function renderAll() {
+  renderAuth(); renderTabs(); renderProgress(); renderPoster(); renderStatus(); renderList(); renderChampions();
+}
+
+function renderAuth() {
+  $("authBtn").textContent = kode ? "Keluar" : "Masuk";
+  $("authBtn").classList.toggle("ghost", !kode);
+}
+
+function renderTabs() {
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.plat === platform));
+  const t = turnamen(platform)[0];
+  $("listTitle").textContent = "Turnamen " + platform + (t ? " · " + t.nama : "");
+}
+
+function renderProgress() {
+  ["PS3", "PS4"].forEach(p => {
+    const selesai = turnamen(p).filter(t => t.status === "selesai").length;
+    $(p === "PS3" ? "ps3prog" : "ps4prog").textContent = selesai + " dari " + turnamen(p).length + " selesai";
+  });
+}
+
+function renderPoster() {
+  const t = yangDibuka(platform) || turnamen(platform).find(x => x.status === "segera");
+  if (!t) {
+    $("posterTitle").textContent = "Belum ada turnamen";
+    $("posterSub").textContent = "";
+    $("posterBtn").style.display = "none";
+    $("posterImg").style.display = "none";
+    return;
+  }
+  $("posterTitle").textContent = t.nama;
+  $("posterSub").textContent = platform + " · Turnamen " + t.nomor_dalam_season + " dari " + turnamen(platform).length + (t.tanggal ? " · " + t.tanggal : "");
+  if (t.poster_url) { $("posterImg").src = t.poster_url; $("posterImg").style.display = "block"; }
+  else $("posterImg").style.display = "none";
+  const bisaDaftar = t.status === "berjalan" || t.status === "dibuka";
+  $("posterBtn").style.display = "";
+  $("posterBtn").textContent = bisaDaftar ? "Daftar sekarang" : "Segera hadir";
+  $("posterBtn").disabled = !bisaDaftar;
+}
+
+function renderStatus() {
+  if (!kode) {
+    $("statusCard").innerHTML = '<p class="welcome">Masuk untuk melihat status keanggotaanmu.</p>' +
+      '<div class="note">Status aktif dihitung dari turnamen yang kamu ikuti di season ini.</div>';
+    return;
+  }
+  const rows = ["PS3", "PS4"].map(p => {
+    const s = status.find(x => x.platform === p) || { jumlah_diikuti: 0, aktif: false };
+    return '<div class="row"><div>' + p + '<small>' + s.jumlah_diikuti + ' turnamen diikuti season ini</small></div>' +
+      '<span class="badge ' + (s.aktif ? "aktif" : "tidak") + '">' + (s.aktif ? "Aktif" : "Tidak aktif") + '</span></div>';
+  });
+  $("statusCard").innerHTML = '<p class="welcome">Halo, ' + nama + '</p>' + rows.join("");
+}
+
+function renderList() {
+  const list = turnamen(platform);
+  if (!list.length) { $("tournamentList").innerHTML = '<div class="note">Belum ada turnamen.</div>'; return; }
+  $("tournamentList").innerHTML = list.map(t => {
+    const label = t.status === "selesai" ? "Selesai" : t.status === "segera" ? "Segera hadir" : "Berjalan";
+    const cls = t.status === "segera" ? "tidak" : t.status === "selesai" ? "tidak" : "aktif";
+    return '<div class="row"><div>Turnamen ' + t.nomor_dalam_season + ' dari ' + list.length + '<small>' + t.nama + '</small></div>' +
+      '<span class="badge ' + cls + '">' + label + '</span></div>';
+  }).join("");
+}
+
+function renderChampions() {
+  if (!champions.length) { $("champions").innerHTML = '<div class="note">Belum ada juara tercatat.</div>'; return; }
+  const per = {};
+  champions.forEach(c => {
+    const key = c.tournaments ? c.tournaments.nama : "-";
+    (per[key] = per[key] || []).push(c);
+  });
+  $("champions").innerHTML = Object.keys(per).map(k => {
+    const rows = per[k].sort((a, b) => a.peringkat - b.peringkat).map(c =>
+      '<div class="row"><div>' + (c.peringkat === 1 ? '<span class="gold">Juara 1</span>' : 'Juara ' + c.peringkat) +
+      '<small>' + k + '</small></div><div>' + c.nama_tampil + '</div></div>').join("");
+    return rows;
+  }).join("");
+}
+
+// Login, pendaftaran, dan logout
+function openLogin(fromReg) {
+  pendingReg = !!fromReg;
+  $("kodeInput").value = "";
+  $("loginErr").textContent = "";
+  $("loginModal").classList.add("open");
+  setTimeout(() => $("kodeInput").focus(), 50);
+}
+function closeLogin() { $("loginModal").classList.remove("open"); }
+
+async function doLogin() {
+  const input = $("kodeInput").value.trim().toUpperCase();
+  if (!input) { $("loginErr").textContent = "Masukkan kode member dulu."; return; }
+  $("loginConfirm").disabled = true;
+  const { data, error } = await sb.rpc("login_member", { kode_input: input });
+  $("loginConfirm").disabled = false;
+  if (error) { $("loginErr").textContent = "Gagal menghubungi server. Coba lagi."; return; }
+  if (!data || !data.length) { $("loginErr").textContent = "Kode tidak dikenali. Periksa lagi kodenya."; return; }
+  kode = input;
+  nama = data[0].nama;
+  closeLogin();
+  await muatStatus();
+  renderAll();
+  if (pendingReg) openReg();
+}
+
+async function logout() {
+  kode = null; nama = null; status = [];
+  renderAll();
+}
+
+function openReg() {
+  if (!kode) { openLogin(true); return; }
+  const t = yangDibuka(platform);
+  if (!t) return;
+  $("regTitle").textContent = "Daftar " + t.nama;
+  $("regText").textContent = "Pendaftaran sebagai " + nama + " untuk turnamen " + t.nomor_dalam_season + " dari " + platform + ".";
+  $("regMsg").textContent = "";
+  $("regConfirm").disabled = false;
+  $("regModal").classList.add("open");
+}
+function closeReg() { $("regModal").classList.remove("open"); }
+
+async function confirmReg() {
+  $("regConfirm").disabled = true;
+  const { data, error } = await sb.rpc("register_tournament", { kode_input: kode, platform_input: platform });
+  if (error) { $("regMsg").textContent = "Gagal mendaftar. Coba lagi."; $("regConfirm").disabled = false; return; }
+  const pesan = {
+    ok: "Pendaftaran berhasil.",
+    kode_tidak_valid: "Kode member tidak valid. Silakan masuk ulang.",
+    tidak_ada_turnamen: "Belum ada turnamen yang dibuka untuk platform ini."
+  };
+  $("regMsg").textContent = pesan[data] || "Terjadi kesalahan.";
+  if (data === "ok") {
+    await muatStatus();
+    renderAll();
+    setTimeout(closeReg, 900);
+  } else {
+    $("regConfirm").disabled = false;
+  }
+}
+
+// Event
+$("authBtn").addEventListener("click", () => kode ? logout() : openLogin(false));
+$("loginConfirm").addEventListener("click", doLogin);
+$("loginCancel").addEventListener("click", closeLogin);
+$("kodeInput").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+$("regConfirm").addEventListener("click", confirmReg);
+$("regCancel").addEventListener("click", closeReg);
+$("poster").addEventListener("click", openReg);
+$("poster").addEventListener("keydown", e => { if (e.key === "Enter") openReg(); });
+$("posterBtn").addEventListener("click", e => { e.stopPropagation(); openReg(); });
+document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
+  platform = b.dataset.plat; renderAll();
+}));
+
+renderAll();
+muat();
+</script>
+</body>
+</html>
