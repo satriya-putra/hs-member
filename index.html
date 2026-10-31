@@ -255,7 +255,12 @@ function closeLogin() { $("loginModal").classList.remove("open"); }
 
 async function doLogin() {
   const input = $("kodeInput").value.trim().toUpperCase();
-  if (!input) { $("loginErr").textContent = "Masukkan kode member dulu."; return; }
+  if (error) {
+  $("loginErr").textContent = error.message.includes("terkunci")
+    ? "Terlalu banyak percobaan. Coba lagi dalam 15 menit."
+    : "Gagal menghubungi server. Coba lagi.";
+  return;
+}
   $("loginConfirm").disabled = true;
   const { data, error } = await sb.rpc("login_member", { kode_input: input });
   $("loginConfirm").disabled = false;
